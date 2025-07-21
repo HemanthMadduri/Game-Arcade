@@ -1,74 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title> Game Arcade</title>
+  <meta charset="UTF-8">
+  <title>GENZPLAY Arcade</title>
   <style>
     body {
-      background-color: #4b0082; /* Purple background */
-      font-family: Arial, sans-serif;
-      color: white;
       margin: 0;
-      padding: 0;
+      background-color: #001f4d; /* Dark blue background */
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
       text-align: center;
     }
 
     header {
-      padding: 30px;
-      font-size: 36px;
+      padding: 40px 20px 10px;
+      font-size: 48px;
       font-weight: bold;
     }
 
     .logo {
-      font-size: 20px;
+      font-size: 24px;
       font-style: italic;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
+      color: #ffffff;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 20px;
-      padding: 20px;
-      max-width: 1000px;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 25px;
+      padding: 30px;
+      max-width: 1200px;
       margin: auto;
     }
 
     .card {
-      background-color: #6a0dad;
+      background-color: #003380;
       border: 2px solid white;
-      border-radius: 10px;
+      border-radius: 15px;
       padding: 20px;
       cursor: pointer;
-      transition: transform 0.2s;
+      transition: transform 0.3s;
+      font-size: 20px;
     }
 
     .card:hover {
       transform: scale(1.05);
-      background-color: #7a1fcf;
+      background-color: #0055cc;
     }
 
-    .card a {
-      color: white;
-      text-decoration: none;
-      font-weight: bold;
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+      margin-top: 30px;
     }
   </style>
 </head>
 <body>
-  <header>Game Arcade</header>
-  <div class="logo">🧠 CopilotPlay</div>
+
+  <header>GENZPLAY</header>
+  <div class="logo">🎮 GenZ Game Universe</div>
 
   <div class="grid">
-    <div class="card"><a href="https://example.com/game1" target="_blank">🎲 Tic Tac Toe</a></div>
-    <div class="card"><a href="https://example.com/game2" target="_blank">🚗 Car Racing</a></div>
-    <div class="card"><a href="https://example.com/game3" target="_blank">🧱 Brick Breaker</a></div>
-    <div class="card"><a href="https://example.com/game4" target="_blank">🐍 Snake Game</a></div>
-    <div class="card"><a href="https://example.com/game5" target="_blank">🔫 Space Shooter</a></div>
-    <div class="card"><a href="https://example.com/game6" target="_blank">🏃 Subway Surfers Clone</a></div>
-    <div class="card"><a href="https://example.com/game7" target="_blank">🧠 Memory Match</a></div>
-    <div class="card"><a href="https://example.com/game8" target="_blank">🎯 Dart Challenge</a></div>
-    <div class="card"><a href="https://example.com/game9" target="_blank">🎮 Platform Jumper</a></div>
-    <div class="card"><a href="https://example.com/game10" target="_blank">🕵️ Find the Hidden Object</a></div>
+    <div class="card" onclick="loadGame('https://games.construct.net/3104/latest')">🎲 Tic Tac Toe</div>
+    <div class="card" onclick="loadGame('https://games.construct.net/2832/latest')">🚀 Space Shooter</div>
+    <div class="card" onclick="loadGame('https://games.construct.net/1247/latest')">🐍 Snake Game</div>
+    <div class="card" onclick="loadGame('https://games.construct.net/1460/latest')">🧱 Brick Breaker</div>
+    <div class="card" onclick="loadGame('https://games.construct.net/1749/latest')">🔫 FPS Training</div>
+    <div class="card" onclick="loadGame('https://games.construct.net/1262/latest')">🏃 Endless Runner</div>
+    <div class="card" onclick="loadGame('https://games.construct.net/1998/latest')">🧠 Memory Flip</div>
+    <div class="card" onclick="loadGame('https://games.construct.net/1175/latest')">🎮 Platform Jump</div>
+    <div class="card" onclick="loadGame('https://games.construct.net/2402/latest')">🎯 Balloon Pop</div>
+    <div class="card" onclick="loadGame('https://games.construct.net/2297/latest')">🕵️ Hidden Items</div>
   </div>
+
+  <div id="gameContainer"></div>
+
+  <script>
+    function loadGame(url) {
+      document.getElementById("gameContainer").innerHTML =
+        `<iframe src="${url}" allowfullscreen></iframe>`;
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+  </script>
+
 </body>
 </html>
