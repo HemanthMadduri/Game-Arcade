@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Platform Jumper</title>
+  <style>
+    canvas { background: #222; display: block; margin: auto; }
+    body { color: white; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>Platform Jumper</h1>
+  <canvas id="game" width="500" height="300"></canvas>
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    let x = 50, y = 250, vy = 0, gravity = 0.5, isJumping = false;
+    let platforms = [{x: 0, y: 280, w: 500}];
+
+    document.addEventListener("keydown", e => {
+      if (e.key === " " && !isJumping) {
+        vy = -10; isJumping = true;
+      }
+    });
+
+    function draw() {
+      ctx.clearRect(0, 0, 500, 300);
+      ctx.fillStyle = "lime";
+      ctx.fillRect(x, y, 30, 30);
+
+      y += vy; vy += gravity;
+
+      platforms.forEach(p => {
+        ctx.fillStyle = "blue";
+        ctx.fillRect(p.x, p.y, p.w, 20);
+
+        if (y + 30 >= p.y && y + 30 <= p.y+20 && x + 30 > p.x && x < p.x + p.w && vy > 0) {
+          y = p.y - 30; vy = 0; isJumping = false;
+        }
+      });
+
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>
