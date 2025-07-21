@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Find Hidden Items</title>
+  <style>
+    body { background: #002147; color: white; text-align: center; }
+    canvas { background: #444; display: block; margin: auto; }
+  </style>
+</head>
+<body>
+  <h1>Find the Hidden Items</h1>
+  <canvas id="game" width="500" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const items = [
+      { x: 100, y: 100, found: false },
+      { x: 300, y: 200, found: false },
+      { x: 250,
