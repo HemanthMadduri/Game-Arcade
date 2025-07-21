@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Balloon Pop</title>
+  <style>
+    body { background: #001f3f; color: white; text-align: center; }
+    canvas { background: #004080; display: block; margin: auto; }
+  </style>
+</head>
+<body>
+  <h1>Balloon Pop</h1>
+  <canvas id="game" width="500" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    let balloons = [];
+
+    setInterval(() => {
+      balloons.push({ x: Math.random() * 460, y: 600 });
+    }, 1000);
+
+    canvas.onclick = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      balloons = balloons.filter(b => !(x >= b.x && x <= b.x+40 && y >= b.y && y <= b.y+60));
+    };
+
+    function draw() {
+      ctx.clearRect(0, 0, 500, 600);
+      balloons.forEach(b => {
+        b.y -= 2;
+        ctx.fillStyle = "pink";
+        ctx.beginPath();
+        ctx.ellipse(b.x + 20, b.y + 30, 20, 30, 0, 0, Math.PI*2);
+        ctx.fill();
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>
