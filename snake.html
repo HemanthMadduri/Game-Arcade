@@ -1,32 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Snake Game</title>
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      background: black;
+      margin: 0; padding: 0;
       overflow: hidden;
+      background-color: black;
     }
     canvas {
       display: block;
-      margin: auto;
-      background: #111;
+      background-color: #111;
     }
     #overlay {
       position: absolute;
       top: 0; left: 0;
-      width: 100%; height: 100%;
+      width: 100vw; height: 100vh;
       color: white;
-      font-size: 3em;
-      display: flex;
+      font-size: 2em;
+      display: none;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       background: rgba(0,0,0,0.7);
-      flex-direction: column;
-      z-index: 1;
-      display: none;
+      z-index: 999;
     }
     button {
       font-size: 1em;
@@ -37,8 +35,8 @@
 </head>
 <body>
 <div id="overlay">
-  <div id="message">You Died!</div>
-  <button onclick="restartGame()">Try Again</button>
+  <div>💀 You died!</div>
+  <button onclick="restartGame()">🔄 Try Again</button>
 </div>
 <canvas id="game"></canvas>
 <script>
@@ -47,54 +45,78 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const gridSize = 20;
-const tileCountX = Math.floor(canvas.width / gridSize);
-const tileCountY = Math.floor(canvas.height / gridSize);
+const tileSize = 20;
+const tilesX = Math.floor(canvas.width / tileSize);
+const tilesY = Math.floor(canvas.height / tileSize);
 
-let snake = [{x: 10, y: 10}];
-let direction = {x: 1, y: 0};
-let score = 0;
-let speed = 150;
-let lastUpdate = 0;
-let overlay = document.getElementById("overlay");
+let snake, direction, apple, score, speed, gameOver, overlay;
 
-function gameLoop(timestamp) {
-  if (timestamp - lastUpdate < speed) {
-    requestAnimationFrame(gameLoop);
-    return;
-  }
-  lastUpdate = timestamp;
-
-  update();
-  draw();
+function init() {
+  snake = [{x: 5, y: 5}];
+  direction = {x: 1, y: 0};
+  score = 0;
+  speed = 150;
+  gameOver = false;
+  overlay = document.getElementById("overlay");
+  spawnApple();
   requestAnimationFrame(gameLoop);
 }
 
+function spawnApple() {
+  apple = {
+    x: Math.floor(Math.random() * tilesX),
+    y: Math.floor(Math.random() * tilesY)
+  };
+}
+
+function gameLoop(timestamp) {
+  if (gameOver) return;
+  setTimeout(() => {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+  }, speed);
+}
+
 function update() {
-  score++;
-  if (score % 100 === 0 && speed > 50) speed -= 5;
+  const head = {
+    x: (snake[0].x + direction.x + tilesX) % tilesX,
+    y: (snake[0].y + direction.y + tilesY) % tilesY
+  };
 
-  const head = {x: (snake[0].x + direction.x + tileCountX) % tileCountX,
-                y: (snake[0].y + direction.y + tileCountY) % tileCountY};
-
+  // Check self-collision
   if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
     overlay.style.display = "flex";
+    gameOver = true;
     return;
   }
 
   snake.unshift(head);
-  snake.pop();
+
+  if (head.x === apple.x && head.y === apple.y) {
+    score++;
+    speed = Math.max(50, speed - 5);
+    spawnApple();
+  } else {
+    snake.pop();
+  }
 }
 
 function draw() {
   ctx.fillStyle = "#111";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  // Draw snake
   ctx.fillStyle = "lime";
   for (let segment of snake) {
-    ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+    ctx.fillRect(segment.x * tileSize, segment.y * tileSize, tileSize, tileSize);
   }
 
+  // Draw apple
+  ctx.fillStyle = "red";
+  ctx.fillRect(apple.x * tileSize, apple.y * tileSize, tileSize, tileSize);
+
+  // Draw score
   ctx.fillStyle = "white";
   ctx.font = "20px sans-serif";
   ctx.fillText("Score: " + score, 10, 30);
@@ -108,14 +130,11 @@ window.addEventListener("keydown", e => {
 });
 
 function restartGame() {
-  snake = [{x: 10, y: 10}];
-  direction = {x: 1, y: 0};
-  score = 0;
-  speed = 150;
   overlay.style.display = "none";
+  init();
 }
 
-requestAnimationFrame(gameLoop);
+init();
 </script>
 </body>
 </html>
