@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Snake Game</title>
   <style>
     html, body {
-      margin: 0; padding: 0;
+      margin: 0;
+      padding: 0;
       overflow: hidden;
       background-color: black;
     }
     canvas {
       display: block;
-      background-color: #111;
+      background-color: #222;
     }
     #overlay {
       position: absolute;
@@ -49,7 +50,7 @@ const tileSize = 20;
 const tilesX = Math.floor(canvas.width / tileSize);
 const tilesY = Math.floor(canvas.height / tileSize);
 
-let snake, direction, apple, score, speed, gameOver, overlay;
+let snake, direction, apple, score, speed, gameOver;
 
 function init() {
   snake = [{x: 5, y: 5}];
@@ -57,7 +58,6 @@ function init() {
   score = 0;
   speed = 150;
   gameOver = false;
-  overlay = document.getElementById("overlay");
   spawnApple();
   requestAnimationFrame(gameLoop);
 }
@@ -84,9 +84,8 @@ function update() {
     y: (snake[0].y + direction.y + tilesY) % tilesY
   };
 
-  // Check self-collision
   if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
-    overlay.style.display = "flex";
+    document.getElementById("overlay").style.display = "flex";
     gameOver = true;
     return;
   }
@@ -103,8 +102,13 @@ function update() {
 }
 
 function draw() {
-  ctx.fillStyle = "#111";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Draw background grid
+  for (let x = 0; x < tilesX; x++) {
+    for (let y = 0; y < tilesY; y++) {
+      ctx.fillStyle = (x + y) % 2 === 0 ? "#1a4" : "#1c5";
+      ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+    }
+  }
 
   // Draw snake
   ctx.fillStyle = "lime";
@@ -114,9 +118,11 @@ function draw() {
 
   // Draw apple
   ctx.fillStyle = "red";
-  ctx.fillRect(apple.x * tileSize, apple.y * tileSize, tileSize, tileSize);
+  ctx.beginPath();
+  ctx.arc(apple.x * tileSize + tileSize / 2, apple.y * tileSize + tileSize / 2, tileSize / 2, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Draw score
+  // Score
   ctx.fillStyle = "white";
   ctx.font = "20px sans-serif";
   ctx.fillText("Score: " + score, 10, 30);
@@ -130,7 +136,7 @@ window.addEventListener("keydown", e => {
 });
 
 function restartGame() {
-  overlay.style.display = "none";
+  document.getElementById("overlay").style.display = "none";
   init();
 }
 
