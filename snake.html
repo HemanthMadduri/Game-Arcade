@@ -3,49 +3,119 @@
 <head>
   <title>Snake Game</title>
   <style>
-    body { background: #001f3f; color: white; text-align: center; }
-    canvas { background: #222; display: block; margin: auto; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: #111;
+    }
+    #overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      color: white;
+      font-size: 3em;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.7);
+      flex-direction: column;
+      z-index: 1;
+      display: none;
+    }
+    button {
+      font-size: 1em;
+      padding: 10px 20px;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
-  <h1>Snake Game</h1>
-  <canvas width="400" height="400" id="game"></canvas>
-  <script>
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
-    const grid = 20;
-    let snake = [{x:160, y:160}];
-    let dx = grid, dy = 0;
-    let apple = {x: 80, y: 80};
+<div id="overlay">
+  <div id="message">You Died!</div>
+  <button onclick="restartGame()">Try Again</button>
+</div>
+<canvas id="game"></canvas>
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-    function draw() {
-      ctx.clearRect(0,0,400,400);
-      ctx.fillStyle = "red";
-      ctx.fillRect(apple.x, apple.y, grid, grid);
-      ctx.fillStyle = "lime";
-      snake.forEach(p => ctx.fillRect(p.x, p.y, grid, grid));
+const gridSize = 20;
+const tileCountX = Math.floor(canvas.width / gridSize);
+const tileCountY = Math.floor(canvas.height / gridSize);
 
-      const head = {x: snake[0].x + dx, y: snake[0].y + dy};
-      snake.unshift(head);
-      if (head.x === apple.x && head.y === apple.y) {
-        apple.x = Math.floor(Math.random()*20)*grid;
-        apple.y = Math.floor(Math.random()*20)*grid;
-      } else {
-        snake.pop();
-      }
-      if (head.x < 0 || head.x >= 400 || head.y < 0 || head.y >= 400) location.reload();
-      for (let i = 4; i < snake.length; i++)
-        if (snake[i].x === head.x && snake[i].y === head.y) location.reload();
-    }
+let snake = [{x: 10, y: 10}];
+let direction = {x: 1, y: 0};
+let score = 0;
+let speed = 150;
+let lastUpdate = 0;
+let overlay = document.getElementById("overlay");
 
-    document.addEventListener("keydown", e => {
-      if (e.key === "ArrowUp" && dy === 0) { dx = 0; dy = -grid; }
-      else if (e.key === "ArrowDown" && dy === 0) { dx = 0; dy = grid; }
-      else if (e.key === "ArrowLeft" && dx === 0) { dx = -grid; dy = 0; }
-      else if (e.key === "ArrowRight" && dx === 0) { dx = grid; dy = 0; }
-    });
+function gameLoop(timestamp) {
+  if (timestamp - lastUpdate < speed) {
+    requestAnimationFrame(gameLoop);
+    return;
+  }
+  lastUpdate = timestamp;
 
-    setInterval(draw, 100);
-  </script>
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+function update() {
+  score++;
+  if (score % 100 === 0 && speed > 50) speed -= 5;
+
+  const head = {x: (snake[0].x + direction.x + tileCountX) % tileCountX,
+                y: (snake[0].y + direction.y + tileCountY) % tileCountY};
+
+  if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+    overlay.style.display = "flex";
+    return;
+  }
+
+  snake.unshift(head);
+  snake.pop();
+}
+
+function draw() {
+  ctx.fillStyle = "#111";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "lime";
+  for (let segment of snake) {
+    ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+  }
+
+  ctx.fillStyle = "white";
+  ctx.font = "20px sans-serif";
+  ctx.fillText("Score: " + score, 10, 30);
+}
+
+window.addEventListener("keydown", e => {
+  if (e.key === "ArrowUp" && direction.y === 0) direction = {x: 0, y: -1};
+  if (e.key === "ArrowDown" && direction.y === 0) direction = {x: 0, y: 1};
+  if (e.key === "ArrowLeft" && direction.x === 0) direction = {x: -1, y: 0};
+  if (e.key === "ArrowRight" && direction.x === 0) direction = {x: 1, y: 0};
+});
+
+function restartGame() {
+  snake = [{x: 10, y: 10}];
+  direction = {x: 1, y: 0};
+  score = 0;
+  speed = 150;
+  overlay.style.display = "none";
+}
+
+requestAnimationFrame(gameLoop);
+</script>
 </body>
 </html>
