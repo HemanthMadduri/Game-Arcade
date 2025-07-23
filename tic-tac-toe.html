@@ -1,14 +1,111 @@
-<!-- Save as tic-tac-toe.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Tic Tac Toe</title>
-  <style>/* styles same as before */</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tic Tac Toe Fullscreen</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; width: 100%; font-family: sans-serif; background: #121212; color: #fff; }
+    .game { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 90vmin;
+      height: 90vmin;
+      max-width: 500px;
+    }
+    .cell {
+      background: #1f1f1f;
+      border: 2px solid #3c3c3c;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 3em;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .cell.taken { cursor: default; }
+    .status, .reset {
+      margin-top: 20px;
+      font-size: 1.5em;
+    }
+    .reset {
+      background: #3c3c3c;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Tic Tac Toe</h1>
-  <div class="board" id="board"></div>
-  <p id="message"></p>
-  <script>/* JS same as previous version */</script>
+  <div class="game">
+    <div class="board" id="board"></div>
+    <div class="status" id="status">Player X's turn</div>
+    <div class="reset" onclick="resetGame()">Restart</div>
+  </div>
+
+  <script>
+    const board = document.getElementById("board");
+    const status = document.getElementById("status");
+    let currentPlayer = "X";
+    let cells = [];
+    let gameActive = true;
+
+    const winningCombos = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+
+    function checkWinner() {
+      for (let combo of winningCombos) {
+        const [a,b,c] = combo;
+        if (
+          cells[a].textContent === currentPlayer &&
+          cells[b].textContent === currentPlayer &&
+          cells[c].textContent === currentPlayer
+        ) {
+          status.textContent = `Player ${currentPlayer} wins!`;
+          gameActive = false;
+          return;
+        }
+      }
+      if ([...cells].every(cell => cell.textContent !== "")) {
+        status.textContent = "It's a draw!";
+        gameActive = false;
+      }
+    }
+
+    function handleClick(e) {
+      const cell = e.target;
+      if (!gameActive || cell.textContent !== "") return;
+      cell.textContent = currentPlayer;
+      cell.classList.add("taken");
+      checkWinner();
+      if (gameActive) {
+        currentPlayer = currentPlayer === "X" ? "O" : "X";
+        status.textContent = `Player ${currentPlayer}'s turn`;
+      }
+    }
+
+    function resetGame() {
+      board.innerHTML = "";
+      currentPlayer = "X";
+      gameActive = true;
+      status.textContent = "Player X's turn";
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.addEventListener("click", handleClick);
+        board.appendChild(cell);
+      }
+      cells = document.querySelectorAll(".cell");
+    }
+
+    resetGame();
+  </script>
 </body>
 </html>
