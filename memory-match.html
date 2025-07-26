@@ -1,34 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Memory Match Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background: #111;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      justify-content: center;
-    }
-    h1 {
-      margin-bottom: 10px;
-    }
-    #game {
-      display: grid;
-      grid-template-columns: repeat(4, 80px);
-      gap: 10px;
-      padding: 20px;
-      justify-content: center;
-    }
-    .card {
-      width: 80px;
-      height: 80px
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Match PvP</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>Memory Match PvP</h1>
+        <div class="score-board">
+            <p>Player 1: <span id="player1-score">0</span></p>
+            <p>Player 2: <span id="player2-score">0</span></p>
+        </div>
+        <p class="current-player-display">Current Turn: <span id="current-player">Player 1</span></p>
+        <div class="game-board" id="game-board">
+            </div>
+        <button id="restart-button">Restart Game</button>
+        <div id="message-display" class="message-display"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
