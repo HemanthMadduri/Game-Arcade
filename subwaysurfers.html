@@ -1,101 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Runner Game</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini Subway Surfers</title>
   <style>
-    canvas { background: #87CEEB; display: block; margin: 0 auto; }
-    body { margin: 0; overflow: hidden; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: linear-gradient(#87ceeb, #f0e68c);
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      display: block;
+      background: #eee;
+    }
   </style>
 </head>
 <body>
-<canvas id="gameCanvas" width="480" height="320"></canvas>
+<canvas id="gameCanvas"></canvas>
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;const groundY = canvas.height - 100; let playerY = groundY; let velocityY = 0; const gravity = 1; let isJumping = false; let isSliding = false; let score = 0;
 
-let player = { x: 50, y: 200, w: 30, h: 30, vy: 0, gravity: 0.6, jumpStrength: -10 };
-let groundY = canvas.height - 50;
+const player = { x: 100, y: groundY, width: 50, height: 80, color: "#0077cc", };
+
 let obstacles = [];
-let score = 0;
 
-document.addEventListener("keydown", e => {
-  if (e.code === "Space" || e.code === "ArrowUp") {
-    if (player.y >= groundY - player.h) player.vy = player.jumpStrength;
-  }
-});
+function spawnObstacle() { const type = Math.random() > 0.5 ? "high" : "low"; obstacles.push({ x: canvas.width, y: type === "high" ? groundY - 80 : groundY + 20, width: 40, height: type === "high" ? 80 : 30, type, color: "#cc0000", }); }
 
-canvas.addEventListener("touchstart", () => {
-  if (player.y >= groundY - player.h) player.vy = player.jumpStrength;
-});
+function updateObstacles() { for (let obs of obstacles) { obs.x -= 6; } obstacles = obstacles.filter((obs) => obs.x + obs.width > 0); }
 
-function spawnObstacle() {
-  obstacles.push({ x: canvas.width, y: groundY - 30, w: 20, h: 30 });
+function drawPlayer() { ctx.fillStyle = player.color; ctx.fillRect(player.x, player.y, player.width, isSliding ? player.height / 2 : player.height); }
+
+function drawObstacles() { for (let obs of obstacles) { ctx.fillStyle = obs.color; ctx.fillRect(obs.x, obs.y, obs.width, obs.height); } }
+
+function checkCollision() { for (let obs of obstacles) { const px = player.x; const py = player.y; const pw = player.width; const ph = isSliding ? player.height / 2 : player.height;
+
+if (
+  px < obs.x + obs.width &&
+  px + pw > obs.x &&
+  py < obs.y + obs.height &&
+  py + ph > obs.y
+) {
+  alert("Game Over! Score: " + score);
+  document.location.reload();
 }
 
-function update() {
-  // Update player
-  player.vy += player.gravity;
-  player.y += player.vy;
-  if (player.y > groundY - player.h) {
-    player.y = groundY - player.h;
-    player.vy = 0;
-  }
+} }
 
-  // Update obstacles
-  for (let obs of obstacles) {
-    obs.x -= 4;
-  }
-  obstacles = obstacles.filter(obs => obs.x + obs.w > 0);
+function jump() { if (!isJumping && !isSliding) { velocityY = -18; isJumping = true; } }
 
-  // Check collisions
-  for (let obs of obstacles) {
-    if (
-      player.x < obs.x + obs.w &&
-      player.x + player.w > obs.x &&
-      player.y < obs.y + obs.h &&
-      player.y + player.h > obs.y
-    ) {
-      alert("Game Over! Score: " + score);
-      location.reload();
-    }
-  }
+function slide() { if (!isJumping && !isSliding) { isSliding = true; setTimeout(() => { isSliding = false; }, 1000); } }
 
-  // Score increment
-  score++;
-}
+function gameLoop() { ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  // Draw ground
-  ctx.fillStyle = "#228B22";
-  ctx.fillRect(0, groundY, canvas.width, 50);
+velocityY += gravity; playerY += velocityY;
 
-  // Draw player
-  ctx.fillStyle = "red";
-  ctx.fillRect(player.x, player.y, player.w, player.h);
+if (playerY >= groundY) { playerY = groundY; velocityY = 0; isJumping = false; }
 
-  // Draw obstacles
-  ctx.fillStyle = "black";
-  for (let obs of obstacles) {
-    ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
-  }
+player.y = playerY;
 
-  // Draw score
-  ctx.fillStyle = "white";
-  ctx.font = "18px Arial";
-  ctx.fillText("Score: " + score, 10, 20);
-}
+drawPlayer(); drawObstacles(); updateObstacles(); checkCollision();
 
-function loop() {
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-
-setInterval(spawnObstacle, 2000);
-loop();
-</script>
-</body>
-</html>
+score++; ctx.fillStyle =
