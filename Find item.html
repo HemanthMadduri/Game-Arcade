@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Find the Hidden Star Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #e0f7fa;
+      margin: 0;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    #gameArea {
+      position: relative;
+      width: 90vw;
+      height: 70vh;
+      margin: 20px auto;
+      background-image: url('https://i.imgur.com/VqC7vDs.jpg'); /* A cluttered image */
+      background-size: cover;
+      border: 3px solid #00796b;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    #item {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background: url('https://i.imgur.com/o9K3Gss.png') no-repeat center/contain; /* A small star icon */
+      cursor: pointer;
+    }
+    #score {
+      font-size: 22px;
+      margin: 10px;
+      color: #004d40;
+    }
+    button {
+      font-size: 18px;
+      padding: 10px 20px;
+      background-color: #00796b;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #004d40;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔍 Find the Hidden Star</h1>
+  <div id="score">Score: 0</div>
+  <div id="gameArea">
+    <div id="item"></div>
+  </div>
+  <button onclick="startGame()">Start Game</button>
+
+  <script>
+    const item = document.getElementById("item");
+    const gameArea = document.getElementById("gameArea");
+    const scoreDisplay = document.getElementById("score");
+    let score = 0;
+
+    item.addEventListener("click", () => {
+      score++;
+      scoreDisplay.textContent = "Score: " + score;
+      moveItem();
+    });
+
+    function startGame() {
+      score = 0;
+      scoreDisplay.textContent = "Score: 0";
+      item.style.display = "block";
+      moveItem();
+    }
+
+    function moveItem() {
+      const maxX = gameArea.clientWidth - item.clientWidth;
+      const maxY = gameArea.clientHeight - item.clientHeight;
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+      item.style.left = x + "px";
+      item.style.top = y + "px";
+    }
+  </script>
+
+</body>
+</html>
