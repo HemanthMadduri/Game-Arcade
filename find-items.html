@@ -2,91 +2,153 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Find the Hidden Star Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Match Game</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      background: #e0f7fa;
-      margin: 0;
-    }
-    h1 {
-      margin-top: 20px;
-    }
-    #gameArea {
-      position: relative;
-      width: 90vw;
-      height: 70vh;
-      margin: 20px auto;
-      background-image: url('https://i.imgur.com/VqC7vDs.jpg'); /* A cluttered image */
-      background-size: cover;
-      border: 3px solid #00796b;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    #item {
-      position: absolute;
-      width: 40px;
-      height: 40px;
-      background: url('https://i.imgur.com/o9K3Gss.png') no-repeat center/contain; /* A small star icon */
-      cursor: pointer;
-    }
-    #score {
-      font-size: 22px;
-      margin: 10px;
-      color: #004d40;
-    }
-    button {
-      font-size: 18px;
-      padding: 10px 20px;
-      background-color: #00796b;
+      background: #282c34;
       color: white;
-      border: none;
-      border-radius: 5px;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      grid-gap: 10px;
+      justify-content: center;
+      margin: 0 auto;
+      padding: 10px;
+    }
+
+    .card {
+      width: 80px;
+      height: 80px;
+      background: #444;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      color: transparent;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+      user-select: none;
+    }
+
+    .card.flipped {
+      background: #fff;
+      color: black;
+      cursor: default;
+    }
+
+    .card.matched {
+      background: limegreen;
+      color: white;
+    }
+
+    #reset {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #004d40;
+
+    @media (max-width: 600px) {
+      #game-board {
+        grid-template-columns: repeat(4, 60px);
+      }
+      .card {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+      }
     }
   </style>
 </head>
 <body>
-
-  <h1>🔍 Find the Hidden Star</h1>
-  <div id="score">Score: 0</div>
-  <div id="gameArea">
-    <div id="item"></div>
-  </div>
-  <button onclick="startGame()">Start Game</button>
+  <h1>Memory Match</h1>
+  <div id="game-board"></div>
+  <button id="reset">Restart Game</button>
 
   <script>
-    const item = document.getElementById("item");
-    const gameArea = document.getElementById("gameArea");
-    const scoreDisplay = document.getElementById("score");
-    let score = 0;
+    const board = document.getElementById("game-board");
+    const resetBtn = document.getElementById("reset");
 
-    item.addEventListener("click", () => {
-      score++;
-      scoreDisplay.textContent = "Score: " + score;
-      moveItem();
+    let emojis = ['🍎','🍌','🍇','🍓','🍒','🍉','🥝','🍍'];
+    let cards = [...emojis, ...emojis]; // duplicate for pairs
+    let flippedCards = [];
+    let matchedCards = [];
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function createBoard() {
+      board.innerHTML = '';
+      shuffle(cards);
+      cards.forEach((emoji, index) => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.emoji = emoji;
+        card.dataset.index = index;
+        card.innerText = emoji;
+
+        card.addEventListener('click', () => flipCard(card));
+        board.appendChild(card);
+      });
+    }
+
+    function flipCard(card) {
+      if (flippedCards.length === 2 || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+      card.classList.add('flipped');
+      flippedCards.push(card);
+
+      if (flippedCards.length === 2) {
+        checkMatch();
+      }
+    }
+
+    function checkMatch() {
+      const [card1, card2] = flippedCards;
+      if (card1.dataset.emoji === card2.dataset.emoji) {
+        card1.classList.add('matched');
+        card2.classList.add('matched');
+        matchedCards.push(card1, card2);
+        flippedCards = [];
+
+        if (matchedCards.length === cards.length) {
+          setTimeout(() => {
+            alert("🎉 You matched all cards!");
+          }, 300);
+        }
+      } else {
+        setTimeout(() => {
+          card1.classList.remove('flipped');
+          card2.classList.remove('flipped');
+          flippedCards = [];
+        }, 1000);
+      }
+    }
+
+    resetBtn.addEventListener('click', () => {
+      matchedCards = [];
+      flippedCards = [];
+      createBoard();
     });
 
-    function startGame() {
-      score = 0;
-      scoreDisplay.textContent = "Score: 0";
-      item.style.display = "block";
-      moveItem();
-    }
-
-    function moveItem() {
-      const maxX = gameArea.clientWidth - item.clientWidth;
-      const maxY = gameArea.clientHeight - item.clientHeight;
-      const x = Math.random() * maxX;
-      const y = Math.random() * maxY;
-      item.style.left = x + "px";
-      item.style.top = y + "px";
-    }
+    createBoard();
   </script>
-
 </body>
 </html>
+      
