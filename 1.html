@@ -1,0 +1,117 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Find the Hidden Items Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      background: #222;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      margin: 20px;
+    }
+
+    #game-area {
+      position: relative;
+      width: 90vw;
+      height: 60vh;
+      margin: 0 auto;
+      background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1350&q=80');
+      background-size: cover;
+      border: 3px solid white;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .item {
+      position: absolute;
+      font-size: 24px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .item.found {
+      transform: scale(1.5);
+      pointer-events: none;
+      color: lime;
+    }
+
+    #message {
+      margin-top: 15px;
+      font-size: 20px;
+      color: yellow;
+    }
+
+    #reset {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔍 Find the Hidden Items!</h1>
+  <div id="game-area"></div>
+  <p id="message"></p>
+  <button id="reset">Restart</button>
+
+  <script>
+    const items = ['🍎', '🧸', '🎈', '🔑', '🕶️', '🐱'];
+    const gameArea = document.getElementById('game-area');
+    const message = document.getElementById('message');
+    const resetBtn = document.getElementById('reset');
+
+    function getRandomPosition() {
+      const maxX = gameArea.clientWidth - 30;
+      const maxY = gameArea.clientHeight - 30;
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+      return { x, y };
+    }
+
+    function createGame() {
+      gameArea.innerHTML = '';
+      message.textContent = '';
+      items.forEach((item, index) => {
+        const span = document.createElement('span');
+        span.classList.add('item');
+        span.textContent = item;
+
+        const { x, y } = getRandomPosition();
+        span.style.left = `${x}px`;
+        span.style.top = `${y}px`;
+
+        span.addEventListener('click', () => {
+          if (!span.classList.contains('found')) {
+            span.classList.add('found');
+            checkWin();
+          }
+        });
+
+        gameArea.appendChild(span);
+      });
+    }
+
+    function checkWin() {
+      const foundItems = document.querySelectorAll('.item.found').length;
+      if (foundItems === items.length) {
+        message.textContent = "🎉 You found all items!";
+      }
+    }
+
+    resetBtn.addEventListener('click', createGame);
+
+    window.addEventListener('load', createGame);
+  </script>
+
+</body>
+</html>
