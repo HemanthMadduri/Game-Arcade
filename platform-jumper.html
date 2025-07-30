@@ -1,46 +1,174 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Platform Jumper</title>
+  <meta charset="UTF-8">
+  <title>Platform Jumper Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    canvas { background: #222; display: block; margin: auto; }
-    body { color: white; text-align: center; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; color: white; font-family: sans-serif; overflow: hidden; }
+    #game {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      background: #111;
+    }
+    #player {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background: limegreen;
+      bottom: 100px;
+      left: 50px;
+      border-radius: 10px;
+    }
+    .platform {
+      position: absolute;
+      width: 100px;
+      height: 20px;
+      background: gray;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 20px;
+    }
+    .controls {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .btn {
+      padding: 15px 30px;
+      font-size: 20px;
+      border: none;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border-radius: 10px;
+    }
   </style>
 </head>
 <body>
-  <h1>Platform Jumper</h1>
-  <canvas id="game" width="500" height="300"></canvas>
-  <script>
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
-    let x = 50, y = 250, vy = 0, gravity = 0.5, isJumping = false;
-    let platforms = [{x: 0, y: 280, w: 500}];
 
-    document.addEventListener("keydown", e => {
-      if (e.key === " " && !isJumping) {
-        vy = -10; isJumping = true;
+<div id="game">
+  <div id="player"></div>
+  <div id="score">Score: 0</div>
+  <div class="controls">
+    <button class="btn" onclick="jump()">Jump</button>
+  </div>
+</div>
+
+<script>
+  const game = document.getElementById("game");
+  const player = document.getElementById("player");
+  const scoreEl = document.getElementById("score");
+
+  let playerY = game.clientHeight - 100;
+  let isJumping = false;
+  let velocityY = 0;
+  let gravity = 0.6;
+
+  let score = 0;
+  let speed = 3;
+  let platforms = [];
+
+  // Keyboard support
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "Space" || e.code === "ArrowUp") {
+      jump();
+    }
+  });
+
+  function jump() {
+    if (!isJumping) {
+      velocityY = -12;
+      isJumping = true;
+    }
+  }
+
+  function createPlatform(x) {
+    const platform = document.createElement("div");
+    platform.classList.add("platform");
+    platform.style.left = x + "px";
+    platform.style.bottom = Math.floor(Math.random() * 200 + 100) + "px";
+    game.appendChild(platform);
+    platforms.push(platform);
+  }
+
+  function updatePlatforms() {
+    platforms.forEach((plat, index) => {
+      const currentX = parseInt(plat.style.left);
+      plat.style.left = (currentX - speed) + "px";
+
+      if (currentX + 100 < 0) {
+        plat.remove();
+        platforms.splice(index, 1);
+        createPlatform(game.clientWidth + Math.random() * 100);
+      }
+
+      // Collision check
+      const platRect = plat.getBoundingClientRect();
+      const playerRect = player.getBoundingClientRect();
+      if (
+        playerRect.bottom >= platRect.top &&
+        playerRect.bottom <= platRect.top + 20 &&
+        playerRect.right > platRect.left &&
+        playerRect.left < platRect.right &&
+        velocityY >= 0
+      ) {
+        isJumping = false;
+        velocityY = 0;
+        playerY = game.clientHeight - (window.innerHeight - platRect.top) - player.clientHeight;
       }
     });
+  }
 
-    function draw() {
-      ctx.clearRect(0, 0, 500, 300);
-      ctx.fillStyle = "lime";
-      ctx.fillRect(x, y, 30, 30);
+  // Initial platforms
+  for (let i = 0; i < 5; i++) {
+    createPlatform(200 + i * 200);
+  }
 
-      y += vy; vy += gravity;
+  function gameLoop() {
+    // Gravity and movement
+    velocityY += gravity;
+    playerY += velocityY;
 
-      platforms.forEach(p => {
-        ctx.fillStyle = "blue";
-        ctx.fillRect(p.x, p.y, p.w, 20);
-
-        if (y + 30 >= p.y && y + 30 <= p.y+20 && x + 30 > p.x && x < p.x + p.w && vy > 0) {
-          y = p.y - 30; vy = 0; isJumping = false;
-        }
-      });
-
-      requestAnimationFrame(draw);
+    if (playerY > game.clientHeight - 40) {
+      playerY = game.clientHeight - 40;
+      isJumping = false;
+      velocityY = 0;
     }
-    draw();
-  </script>
+
+    player.style.bottom = playerY + "px";
+
+    // Update platforms
+    updatePlatforms();
+
+    // Update score
+    score += 1;
+    scoreEl.innerText = "Score: " + Math.floor(score / 10);
+
+    // Increase speed every 5 seconds
+    if (score % 500 === 0 && score !== 0) {
+      speed += 0.5;
+    }
+
+    // Game Over check
+    if (playerY < -50) {
+      alert("Game Over! Final Score: " + Math.floor(score / 10));
+      location.reload();
+    }
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  gameLoop();
+</script>
+
 </body>
 </html>
