@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Brick Breaker Game</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #111; color: #fff; font-family: Arial, sans-serif; text-align: center; }
+    canvas { background: #000; display: block; margin: auto; border: 3px solid #fff; touch-action: none; }
+    #score { font-size: 24px; padding: 10px; }
+  </style>
+</head>
+<body>
+
+  <div id="score">Score: 0</div>
+  <canvas id="gameCanvas" width="480" height="320"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+
+    let paddleHeight = 10, paddleWidth = 75;
+    let paddleX = (canvas.width - paddleWidth) / 2;
+    let rightPressed = false, leftPressed = false;
+
+    let ballRadius = 8;
+    let x = canvas.width / 2;
+    let y = canvas.height - 30;
+    let dx = 2;
+    let dy = -2;
+
+    let score = 0;
+
+    const brickRowCount = 5;
+    const brickColumnCount = 7;
+    const brickWidth = 55;
+    const brickHeight = 20;
+    const brickPadding = 10;
+    const brickOffsetTop = 30;
+    const brickOffsetLeft = 30;
+
+    let bricks = [];
+    for (let c = 0; c < brickColumnCount; c++) {
+      bricks[c] = [];
+      for (let r = 0; r < brickRowCount; r++) {
+        bricks[c][r] = { x: 0, y: 0, status: 1 };
+      }
+    }
+
+    function drawBricks() {
+      for (let c = 0; c < brickColumnCount; c++) {
+        for (let r = 0; r < brickRowCount; r++) {
+          if (bricks[c][r].status === 1) {
+            let brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+            let brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+            bricks[c][r].x = brickX;
+            bricks[c][r].y = brickY;
+            ctx.beginPath();
+            ctx.rect(brickX, brickY, brickWidth, brickHeight);
+            ctx.fillStyle = "#00f";
+            ctx.fill();
+            ctx.closePath();
+          }
+        }
+      }
+    }
+
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+      ctx.fillStyle = "#f00";
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function drawPaddle() {
+      ctx.beginPath();
+      ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+      ctx.fillStyle = "#0f0";
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBricks();
+      drawBall();
+      drawPaddle();
+
+      collisionDetection();
+
+      x += dx;
+      y += dy;
+
+      if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) dx = -dx;
+      if (y + dy < ballRadius) dy = -dy;
+      else if (y + dy > canvas.height - ballRadius) {
+        if (x > paddleX && x < paddleX + paddleWidth) {
+          dy = -dy;
+        } else {
+          alert("Game Over! Final Score: " + score);
+          document.location.reload();
+        }
+      }
+
+      if (rightPressed && paddleX < canvas.width - paddleWidth) {
+        paddleX += 5;
+      } else if (leftPressed && paddleX > 0) {
+        paddleX -= 5;
+      }
+
+      scoreEl.textContent = `Score: ${score}`;
+
+      requestAnimationFrame(draw);
+    }
+
+    function collisionDetection() {
+      for (let c = 0; c < brickColumnCount; c++) {
+        for (let r = 0; r < brickRowCount; r++) {
+          let b = bricks[c][r];
+          if (b.status === 1) {
+            if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
+              dy = -dy;
+              b.status = 0;
+              score += 10;
+              if (score === brickRowCount * brickColumnCount * 10) {
+                alert("You Win! Final Score: " + score);
+                document.location.reload();
+              }
+            }
+          }
+        }
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Right" || e.key === "ArrowRight") rightPressed = true;
+      else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = true;
+    });
+
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "Right" || e.key === "ArrowRight") rightPressed = false;
+      else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = false;
+    });
+
+    // Touch support
+    let startX = null;
+    canvas.addEventListener("touchstart", (e) => {
+      startX = e.touches[0].clientX;
+    });
+
+    canvas.addEventListener("touchmove", (e) => {
+      let touchX = e.touches[0].clientX;
+      let dx = touchX - startX;
+      paddleX += dx;
+      if (paddleX < 0) paddleX = 0;
+      if (paddleX > canvas.width - paddleWidth) paddleX = canvas.width - paddleWidth;
+      startX = touchX;
+    });
+
+    draw();
+  </script>
+
+</body>
+</html>
