@@ -1,43 +1,51 @@
-
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Balloon Pop Game</title>
   <style>
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
       overflow: hidden;
-      font-family: Arial, sans-serif;
+      height: 100%;
       background: linear-gradient(to top, #87ceeb, #ffffff);
+      font-family: Arial, sans-serif;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      background: rgba(255,255,255,0.8);
+      padding: 10px 20px;
+      border-radius: 10px;
+      z-index: 10;
     }
     #gameArea {
       position: relative;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
     }
     .balloon {
       position: absolute;
       width: 60px;
       height: 80px;
-      background: red;
+      background-color: red;
       border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-      cursor: pointer;
-      box-shadow: 0 5px 10px rgba(0,0,0,0.3);
-      transition: transform 0.1s;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+      animation: floatUp 5s linear forwards;
+      touch-action: manipulation;
     }
-    .balloon:active {
-      transform: scale(0.9);
-    }
-    #score {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      font-size: 24px;
-      background: rgba(255,255,255,0.7);
-      padding: 10px 20px;
-      border-radius: 10px;
+
+    @keyframes floatUp {
+      from {
+        bottom: -100px;
+      }
+      to {
+        bottom: 100%;
+      }
     }
   </style>
 </head>
@@ -53,42 +61,37 @@
     function createBalloon() {
       const balloon = document.createElement('div');
       balloon.classList.add('balloon');
-      
+
       // Random horizontal position
-      const posX = Math.random() * (window.innerWidth - 60);
-      balloon.style.left = `${posX}px`;
-      balloon.style.bottom = '-100px';
+      const left = Math.random() * (window.innerWidth - 60);
+      balloon.style.left = `${left}px`;
 
       // Random color
       balloon.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
 
-      gameArea.appendChild(balloon);
-
-      let y = -100;
-      const speed = 1 + Math.random() * 2;
-      const rise = setInterval(() => {
-        y += speed;
-        balloon.style.bottom = y + 'px';
-        if (y > window.innerHeight) {
-          gameArea.removeChild(balloon);
-          clearInterval(rise);
-        }
-      }, 16);
-
-      const popHandler = () => {
+      // Pop handler (click/tap)
+      const popBalloon = (e) => {
+        e.preventDefault();
         score++;
-        scoreDisplay.textContent = 'Score: ' + score;
-        gameArea.removeChild(balloon);
-        clearInterval(rise);
+        scoreDisplay.textContent = `Score: ${score}`;
+        balloon.remove();
       };
 
-      // Support both click and touch
-      balloon.addEventListener('click', popHandler);
-      balloon.addEventListener('touchstart', popHandler);
+      balloon.addEventListener('click', popBalloon);
+      balloon.addEventListener('touchstart', popBalloon, { passive: false });
+
+      // Remove balloon if it reaches top
+      balloon.addEventListener('animationend', () => {
+        balloon.remove();
+      });
+
+      gameArea.appendChild(balloon);
     }
 
-    // Create new balloons every 800ms
-    setInterval(createBalloon, 800);
+    // Generate balloons every 700ms
+    setInterval(createBalloon, 700);
   </script>
 </body>
 </html>
+
+      
