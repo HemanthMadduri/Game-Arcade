@@ -1,43 +1,93 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Balloon Pop</title>
+  <meta charset="UTF-8">
+  <title>Balloon Pop Game</title>
   <style>
-    body { background: #001f3f; color: white; text-align: center; }
-    canvas { background: #004080; display: block; margin: auto; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to top, #87ceeb, #ffffff);
+    }
+    #gameArea {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .balloon {
+      position: absolute;
+      width: 60px;
+      height: 80px;
+      background: red;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      cursor: pointer;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+      transition: transform 0.1s;
+    }
+    .balloon:active {
+      transform: scale(0.9);
+    }
+    #score {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      background: rgba(255,255,255,0.7);
+      padding: 10px 20px;
+      border-radius: 10px;
+    }
   </style>
 </head>
 <body>
-  <h1>Balloon Pop</h1>
-  <canvas id="game" width="500" height="600"></canvas>
+  <div id="score">Score: 0</div>
+  <div id="gameArea"></div>
+
   <script>
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
-    let balloons = [];
+    const gameArea = document.getElementById('gameArea');
+    const scoreDisplay = document.getElementById('score');
+    let score = 0;
 
-    setInterval(() => {
-      balloons.push({ x: Math.random() * 460, y: 600 });
-    }, 1000);
+    function createBalloon() {
+      const balloon = document.createElement('div');
+      balloon.classList.add('balloon');
+      
+      // Random horizontal position
+      const posX = Math.random() * (window.innerWidth - 60);
+      balloon.style.left = `${posX}px`;
+      balloon.style.bottom = '-100px';
 
-    canvas.onclick = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      balloons = balloons.filter(b => !(x >= b.x && x <= b.x+40 && y >= b.y && y <= b.y+60));
-    };
+      // Random color
+      balloon.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
 
-    function draw() {
-      ctx.clearRect(0, 0, 500, 600);
-      balloons.forEach(b => {
-        b.y -= 2;
-        ctx.fillStyle = "pink";
-        ctx.beginPath();
-        ctx.ellipse(b.x + 20, b.y + 30, 20, 30, 0, 0, Math.PI*2);
-        ctx.fill();
-      });
-      requestAnimationFrame(draw);
+      gameArea.appendChild(balloon);
+
+      let y = -100;
+      const speed = 1 + Math.random() * 2;
+      const rise = setInterval(() => {
+        y += speed;
+        balloon.style.bottom = y + 'px';
+        if (y > window.innerHeight) {
+          gameArea.removeChild(balloon);
+          clearInterval(rise);
+        }
+      }, 16);
+
+      const popHandler = () => {
+        score++;
+        scoreDisplay.textContent = 'Score: ' + score;
+        gameArea.removeChild(balloon);
+        clearInterval(rise);
+      };
+
+      // Support both click and touch
+      balloon.addEventListener('click', popHandler);
+      balloon.addEventListener('touchstart', popHandler);
     }
-    draw();
+
+    // Create new balloons every 800ms
+    setInterval(createBalloon, 800);
   </script>
 </body>
 </html>
