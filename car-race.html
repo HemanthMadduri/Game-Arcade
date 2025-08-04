@@ -6,12 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Car Racing Game</title>
   <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: #111;
-      font-family: sans-serif;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #222; overflow: hidden; }
     #gameArea {
       position: relative;
       width: 100vw;
@@ -19,112 +15,126 @@
       background: #333;
       overflow: hidden;
     }
-    .car {
-      position: absolute;
-      bottom: 10%;
+    #car {
       width: 50px;
       height: 100px;
       background: red;
+      position: absolute;
+      bottom: 50px;
       left: 50%;
       transform: translateX(-50%);
       border-radius: 10px;
     }
     .obstacle {
-      position: absolute;
       width: 50px;
       height: 100px;
       background: yellow;
-      top: 0;
-    }
-    .controls {
       position: absolute;
-      bottom: 10px;
-      width: 100%;
-      text-align: center;
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-    }
-    .btn {
-      width: 80px;
-      height: 80px;
-      background: rgba(255,255,255,0.2);
-      color: white;
-      font-size: 30px;
-      border: none;
-      border-radius: 50%;
+      top: -120px;
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
   <div id="gameArea">
-    <div class="car" id="car"></div>
-    <div class="controls">
-      <button class="btn" onclick="moveLeft()">⬅️</button>
-      <button class="btn" onclick="moveRight()">➡️</button>
-    </div>
+    <div id="car"></div>
   </div>
 
   <script>
-    const car = document.getElementById('car');
-    const gameArea = document.getElementById('gameArea');
-    let carX = window.innerWidth / 2 - 25;
+    const car = document.getElementById("car");
+    const gameArea = document.getElementById("gameArea");
+    let carLeft = window.innerWidth / 2 - 25;
+    let carSpeed = 5;
+    let isGameRunning = true;
 
-    function moveCar() {
-      car.style.left = carX + 'px';
-    }
-
-    function moveLeft() {
-      if (carX > 10) {
-        carX -= 20;
-        moveCar();
+    // Move car
+    function moveCar(direction) {
+      const step = 30;
+      if (direction === "left" && carLeft > 0) {
+        carLeft -= step;
+      } else if (direction === "right" && carLeft < window.innerWidth - 50) {
+        carLeft += step;
       }
+      car.style.left = carLeft + "px";
     }
 
-    function moveRight() {
-      if (carX < window.innerWidth - 60) {
-        carX += 20;
-        moveCar();
-      }
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft') moveLeft();
-      if (e.key === 'ArrowRight') moveRight();
+    // Keyboard controls
+    document.addEventListener("keydown", (e) => {
+      if (!isGameRunning) return;
+      if (e.key === "ArrowLeft") moveCar("left");
+      if (e.key === "ArrowRight") moveCar("right");
+      if (e.key === "ArrowUp") carSpeed += 1;
+      if (e.key === "ArrowDown") carSpeed = Math.max(2, carSpeed - 1);
     });
 
-    function spawnObstacle() {
-      const obs = document.createElement('div');
-      obs.classList.add('obstacle');
-      obs.style.left = Math.floor(Math.random() * (window.innerWidth - 60)) + 'px';
-      gameArea.appendChild(obs);
+    // Touch swipe controls
+    let touchStartX = 0;
+    let touchStartY = 0;
 
-      let pos = 0;
-      const fall = setInterval(() => {
-        if (pos > window.innerHeight) {
-          obs.remove();
-          clearInterval(fall);
-        } else {
-          pos += 5;
-          obs.style.top = pos + 'px';
+    gameArea.addEventListener("touchstart", (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    });
 
-          // Collision detection
-          const carRect = car.getBoundingClientRect();
-          const obsRect = obs.getBoundingClientRect();
-          if (
-            carRect.left < obsRect.right &&
-            carRect.right > obsRect.left &&
-            carRect.top < obsRect.bottom &&
-            carRect.bottom > obsRect.top
-          ) {
-            alert("Game Over!");
-            location.reload();
-          }
-        }
-      }, 20);
+    gameArea.addEventListener("touchend", (e) => {
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+
+      const dx = touchEndX - touchStartX;
+      const dy = touchEndY - touchStartY;
+
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0) moveCar("right");
+        else moveCar("left");
+      } else {
+        if (dy < 0) carSpeed += 1;
+        else carSpeed = Math.max(2, carSpeed - 1);
+      }
+    });
+
+    // Obstacles
+    function createObstacle() {
+      const obstacle = document.createElement("div");
+      obstacle.classList.add("obstacle");
+      const x = Math.random() * (window.innerWidth - 50);
+      obstacle.style.left = x + "px";
+      gameArea.appendChild(obstacle);
+      moveObstacle(obstacle);
     }
 
-    setInterval(spawnObstacle, 1500);
+    function moveObstacle(obstacle) {
+      let top = -100;
+      function fall() {
+        if (!isGameRunning) return;
+        top += carSpeed;
+        obstacle.style.top = top + "px";
+
+        const carRect = car.getBoundingClientRect();
+        const obsRect = obstacle.getBoundingClientRect();
+        if (
+          carRect.left < obsRect.right &&
+          carRect.right > obsRect.left &&
+          carRect.top < obsRect.bottom &&
+          carRect.bottom > obsRect.top
+        ) {
+          alert("💥 Game Over!");
+          isGameRunning = false;
+          window.location.reload();
+        }
+
+        if (top < window.innerHeight) {
+          requestAnimationFrame(fall);
+        } else {
+          gameArea.removeChild(obstacle);
+        }
+      }
+      fall();
+    }
+
+    setInterval(() => {
+      if (isGameRunning) createObstacle();
+    }, 1000);
   </script>
 </body>
 </html>
+      
