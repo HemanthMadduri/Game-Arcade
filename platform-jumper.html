@@ -1,141 +1,161 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Platform Jumper</title>
   <style>
-    * { margin: 0; padding: 0; }
-    body { overflow: hidden; background: #cce7ff; font-family: sans-serif; }
-    canvas { display: block; margin: auto; background: #87ceeb; }
-    #score {
-      position: absolute;
-      top: 10px; left: 10px;
-      color: #fff;
-      font-size: 20px;
-      font-weight: bold;
-      background: rgba(0,0,0,0.5);
-      padding: 5px 10px;
-      border-radius: 8px;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    canvas { background: #87CEEB; display: block; margin: auto; }
   </style>
 </head>
 <body>
-  <div id="score">Score: 0</div>
-  <canvas id="game" width="400" height="600"></canvas>
-  <script>
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
-    const scoreDiv = document.getElementById("score");
+<canvas id="gameCanvas" width="400" height="600"></canvas>
 
-    let player = {
-      x: 200,
-      y: 500,
-      width: 30,
-      height: 30,
-      dx: 0,
-      dy: 0,
-      jump: -10,
-      gravity: 0.5,
-      onPlatform: false
-    };
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-    let platforms = [];
-    for (let i = 0; i < 6; i++) {
-      platforms.push({
-        x: Math.random() * 350,
-        y: i * 100,
-        width: 100,
-        height: 10
-      });
+let keys = {};
+let score = 0;
+
+const player = {
+  x: 180,
+  y: 500,
+  width: 30,
+  height: 30,
+  vx: 0,
+  vy: 0,
+  speed: 4,
+  jumpPower: -12,
+  onGround: false,
+};
+
+const gravity = 0.5;
+
+const platforms = [
+  { x: 100, y: 550, width: 200, height: 10 },
+  { x: 50, y: 400, width: 100, height: 10 },
+  { x: 250, y: 300, width: 120, height: 10 },
+  { x: 150, y: 150, width: 100, height: 10 },
+];
+
+function drawPlayer() {
+  ctx.fillStyle = 'red';
+  ctx.fillRect(player.x, player.y, player.width, player.height);
+}
+
+function drawPlatforms() {
+  ctx.fillStyle = 'green';
+  platforms.forEach(p => {
+    ctx.fillRect(p.x, p.y, p.width, p.height);
+  });
+}
+
+function drawScore() {
+  ctx.fillStyle = 'black';
+  ctx.font = '20px Arial';
+  ctx.fillText("Score: " + Math.floor(score), 10, 30);
+}
+
+function updatePlayer() {
+  // Keyboard Movement
+  if (keys['ArrowLeft'] || keys['a']) player.vx = -player.speed;
+  else if (keys['ArrowRight'] || keys['d']) player.vx = player.speed;
+  else player.vx = 0;
+
+  // Apply gravity
+  player.vy += gravity;
+  player.x += player.vx;
+  player.y += player.vy;
+
+  // Platform collision
+  player.onGround = false;
+  platforms.forEach(p => {
+    if (
+      player.x < p.x + p.width &&
+      player.x + player.width > p.x &&
+      player.y + player.height < p.y + 10 &&
+      player.y + player.height + player.vy >= p.y
+    ) {
+      player.vy = 0;
+      player.y = p.y - player.height;
+      player.onGround = true;
     }
+  });
 
-    let keys = {};
-    let score = 0;
+  // Prevent going off screen
+  if (player.x < 0) player.x = 0;
+  if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+  if (player.y > canvas.height) {
+    alert("Game Over! Your score: " + Math.floor(score));
+    document.location.reload();
+  }
+}
 
-    function drawPlayer() {
-      ctx.fillStyle = "red";
-      ctx.fillRect(player.x, player.y, player.width, player.height);
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  updatePlayer();
+  drawPlatforms();
+  drawPlayer();
+  drawScore();
+  score += 0.1;
+  requestAnimationFrame(gameLoop);
+}
+
+// Keyboard
+document.addEventListener('keydown', (e) => {
+  keys[e.key] = true;
+  if ((e.key === 'ArrowUp' || e.key === 'w') && player.onGround) {
+    player.vy = player.jumpPower;
+  }
+});
+document.addEventListener('keyup', (e) => {
+  keys[e.key] = false;
+});
+
+// Touch Support
+let touchStartX = 0, touchStartY = 0;
+let touchEndX = 0, touchEndY = 0;
+
+canvas.addEventListener("touchstart", function(e) {
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+}, false);
+
+canvas.addEventListener("touchend", function(e) {
+  const dx = touchEndX - touchStartX;
+  const dy = touchEndY - touchStartY;
+  const absDx = Math.abs(dx);
+  const absDy = Math.abs(dy);
+
+  if (absDx > absDy) {
+    // Horizontal swipe
+    if (dx < 0) {
+      player.vx = -player.speed;
+    } else {
+      player.vx = player.speed;
     }
-
-    function drawPlatforms() {
-      ctx.fillStyle = "green";
-      platforms.forEach(p => {
-        ctx.fillRect(p.x, p.y, p.width, p.height);
-      });
+  } else {
+    // Vertical swipe
+    if (dy < 0 && player.onGround) {
+      // Up swipe = jump
+      let swipePower = Math.min(Math.abs(dy) / 10, 20); // max jump power
+      player.vy = -swipePower;
     }
+  }
+}, false);
 
-    function updatePlatforms() {
-      platforms.forEach(p => {
-        p.y -= 1;
-        if (p.y < 0) {
-          p.y = 600;
-          p.x = Math.random() * 300;
-        }
-      });
-    }
+canvas.addEventListener("touchmove", function(e) {
+  const t = e.touches[0];
+  touchEndX = t.clientX;
+  touchEndY = t.clientY;
+}, false);
 
-    function updatePlayer() {
-      if (keys["ArrowLeft"] || keys["a"]) player.dx = -3;
-      else if (keys["ArrowRight"] || keys["d"]) player.dx = 3;
-      else player.dx = 0;
-
-      player.x += player.dx;
-      player.y += player.dy;
-      player.dy += player.gravity;
-
-      // Collision with platforms
-      player.onPlatform = false;
-      platforms.forEach(p => {
-        if (
-          player.x + player.width > p.x &&
-          player.x < p.x + p.width &&
-          player.y + player.height > p.y &&
-          player.y + player.height < p.y + p.height + player.dy &&
-          player.dy >= 0
-        ) {
-          player.dy = player.jump;
-          player.onPlatform = true;
-        }
-      });
-
-      if (player.y > 600) {
-        alert("Game Over! Score: " + score);
-        document.location.reload();
-      }
-
-      // Wrap around
-      if (player.x < 0) player.x = 400;
-      if (player.x > 400) player.x = 0;
-    }
-
-    function gameLoop() {
-      ctx.clearRect(0, 0, 400, 600);
-      drawPlayer();
-      drawPlatforms();
-      updatePlayer();
-      updatePlatforms();
-      score++;
-      scoreDiv.innerText = "Score: " + score;
-      requestAnimationFrame(gameLoop);
-    }
-
-    // Keyboard
-    document.addEventListener("keydown", e => keys[e.key] = true);
-    document.addEventListener("keyup", e => keys[e.key] = false);
-
-    // Touch controls (tap left/right side)
-    canvas.addEventListener("touchstart", e => {
-      const touchX = e.touches[0].clientX;
-      keys["ArrowLeft"] = touchX < window.innerWidth / 2;
-      keys["ArrowRight"] = touchX > window.innerWidth / 2;
-    });
-    canvas.addEventListener("touchend", e => {
-      keys["ArrowLeft"] = false;
-      keys["ArrowRight"] = false;
-    });
-
-    gameLoop();
-  </script>
+// Start the game
+gameLoop();
+</script>
 </body>
-</html>        
+</html>
+
+    
